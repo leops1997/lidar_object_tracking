@@ -49,7 +49,6 @@ if __name__ == '__main__':
     video_time = 10
     with torch.no_grad():
         for sample_idx in range(len(demo_dataset)):
-            # t1 = time.time()
             metadatas, bev_map, img_rgb = demo_dataset.load_bevmap_front(sample_idx)
             detections, bev_map, fps = do_detect(configs, model, bev_map, is_front=True)         
             
@@ -58,7 +57,7 @@ if __name__ == '__main__':
 
             objects.identify_object(kitti_dets, t, delta_t)
             objects.show_objects()
-            delta_t = video_time/len(demo_dataset)
+            delta_t = video_time/len(demo_dataset) #time based on video
             t += delta_t
             
             # Draw prediction in the image
@@ -86,9 +85,6 @@ if __name__ == '__main__':
                 out_cap = cv2.VideoWriter(out_path, fourcc, 30, (out_cap_w, out_cap_h))
 
             out_cap.write(bev_map)
-            # t2 = time.time()
-            # delta_t = t2-t1
-            # t += delta_t
 
     df = pd.DataFrame(objects.all_detections)
     df.to_csv('motion_vectors.csv', index=False, header=False)

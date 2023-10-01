@@ -8,11 +8,10 @@ class MotionVector:
 
     def __init__(self):
         self.position = Pose3D()
-        self.velocity = 0.0
+        self.speed = 0.0
         self.acceleration = 0.0
         self.yaw_rate = 0.0
         self.heading = 0.0
-        self.angle = 0.0
         self.dimension = Pose3D()
         self.classification = 0
         self.id = 0
@@ -23,16 +22,15 @@ class MotionVector:
 
         self.classification, self.position.x, self.position.y, self.position.z, self.dimension.x, self.dimension.y, self.dimension.z, self.heading = detection
 
-        mv = {"Position": self.position,
-                "Velocity": self.velocity,
-                "Acceleration": self.acceleration,
-                "Yaw_rate": self.yaw_rate,
-                "Heading": self.heading,
-                "Angle": self.angle,
-                "Dimension": self.dimension,
-                "Classification": self.classification,
-                "Id": self.id,
-                "Class_confidence": self.class_confidence,
-                "Timestamp": self.timestamp}
+        mv = {"Location": self.position,
+              "Speed": self.speed,
+              "Acceleration": self.acceleration,
+              "Yaw_rate": self.yaw_rate,
+              "Heading": self.heading,
+              "Dimension": self.dimension,
+              "Classification": self.classification,
+              "Id": self.id,
+              "Class_confidence": self.class_confidence,
+              "Timestamp": self.timestamp}
 
         return mv

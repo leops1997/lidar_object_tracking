@@ -163,7 +163,7 @@ def draw_predictions(img, detections, objects, num_classes=3):
                 x = _y / cnf.BEV_HEIGHT * cnf.bound_size_x + cnf.boundary['minX']
                 y = _x / cnf.BEV_WIDTH * cnf.bound_size_y + cnf.boundary['minY']
                 for obj in objects.detected_objects:
-                    if obj["Position"].x == x and obj["Position"].y == y:
+                    if obj["Location"].x == x and obj["Location"].y == y:
                         id = obj["Id"]
                         break
                 drawRotatedBox(img, _x, _y, _w, _l, _yaw, cnf.colors[int(j)], id)
