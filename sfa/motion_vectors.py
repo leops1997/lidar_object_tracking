@@ -20,7 +20,7 @@ class MotionVector:
 
     def transform_to_motion_vector(self, detection):
 
-        self.classification, self.position.x, self.position.y, self.position.z, self.dimension.x, self.dimension.y, self.dimension.z, self.heading = detection
+        self.classification, self.position.x, self.position.y, self.position.z, self.dimension.x, self.dimension.y, self.dimension.z, self.heading, self.class_confidence = detection
 
         mv = {"Location": self.position,
               "Speed": self.speed,

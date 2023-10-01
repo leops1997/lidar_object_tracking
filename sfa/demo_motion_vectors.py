@@ -68,9 +68,6 @@ if __name__ == '__main__':
             # Rotate the bev_map
             bev_map = cv2.rotate(bev_map, cv2.ROTATE_180)
 
-            if len(kitti_dets) > 0:
-                kitti_dets[:, 1:] = lidar_to_camera_box(kitti_dets[:, 1:], calib.V2C, calib.R0, calib.P2)
-            
             img_bev_h, img_bev_w = bev_map .shape[:2]
             ratio_bev = configs.output_width / img_bev_w
             output_bev_h = int(ratio_bev * img_bev_h)
