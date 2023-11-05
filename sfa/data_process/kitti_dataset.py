@@ -269,6 +269,17 @@ class KittiDataset(Dataset):
         bev_map = makeBEVMap(lidarData, cnf.boundary)
 
         return bev_map, labels, img_rgb, img_path
+    
+    def load_bevmap_front(self, index):
+        """Load only image for the testing phase"""
+        sample_id = int(self.sample_id_list[index])
+        img_path, img_rgb = self.get_image(sample_id)
+        lidarData = self.get_lidar(sample_id)
+        front_lidar = get_filtered_lidar(lidarData, cnf.boundary)
+        front_bevmap = makeBEVMap(front_lidar, cnf.boundary)
+        front_bevmap = torch.from_numpy(front_bevmap)
+
+        return front_bevmap, img_rgb, img_path
 
 
 if __name__ == '__main__':

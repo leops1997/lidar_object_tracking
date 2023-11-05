@@ -69,7 +69,10 @@ class DatasetLoader:
             json_data = response.json()
             for i in range(len(json_data['series'])):
                 decoded = base64.b64decode(base64.b64decode(json_data['series'][i]['value']))
-                file_path = "lisha_dataset/lidar/pointCloud_"+str(i)+".bin"
+                file_path = "dataset/lisha_dataset/testing/velodyne/"+'{:06d}.bin'.format(i)
+                with open(file_path, "wb") as fh:
+                    fh.write(decoded)
+                file_path = "dataset/lisha_dataset/training/velodyne/"+'{:06d}.bin'.format(i)
                 with open(file_path, "wb") as fh:
                     fh.write(decoded)
                 
@@ -81,12 +84,15 @@ class DatasetLoader:
             json_data = response.json()
             for i in range(len(json_data['series'])):
                 decoded = base64.b64decode(base64.b64decode(json_data['series'][i]['value']))
-                file_path = "lisha_dataset/camera/image_"+str(i)+".png"
+                file_path = "dataset/lisha_dataset/testing/image_2/"+'{:06d}.png'.format(i)
+                with open(file_path, "wb") as fh:
+                    fh.write(decoded)
+                file_path = "dataset/lisha_dataset/training/image_2/"+'{:06d}.png'.format(i)
                 with open(file_path, "wb") as fh:
                     fh.write(decoded)
 
 if __name__ == '__main__':
     data_loader = DatasetLoader()
-    data_loader.load_pointcloud()
-    data_loader.load_image()
-    data_loader.open_pointcloud("lisha_dataset/lidar/pointCloud_38.bin")
+    # data_loader.load_pointcloud()
+    # data_loader.load_image()
+    data_loader.open_pointcloud("dataset/lisha_dataset/testing/velodyne/000002.bin")
