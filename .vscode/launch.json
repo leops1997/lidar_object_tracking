@@ -1,0 +1,17 @@
+{
+    // Use o IntelliSense para saber mais sobre os atributos possíveis.
+    // Focalizar para exibir as descrições dos atributos existentes.
+    // Para obter mais informações, acesse: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Arquivo Atual",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "args": ["--gpu_idx","0","--peak_thresh","0.2","--pretrained_path","/home/luizfpastuch/Dev/lidar_object_tracking/checkpoints/fpn_resnet_18/fpn_resnet_18_epoch_300.pth"],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}
