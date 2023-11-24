@@ -58,8 +58,8 @@ select_model = 'resnet50'
 
 
 
-label_dir = '/home/luizfpastuch/Dev/lidar_object_tracking/dataset/kitti/training/label_2/'
-image_dir = '/home/luizfpastuch/Dev/lidar_object_tracking/dataset/kitti/training/image_2/'
+label_dir = 'D:\\Dev\\lidar_object_tracking\\dataset\\kitti\\training\\label_2\\'
+image_dir = 'D:\\Dev\\lidar_object_tracking\\dataset\\kitti\\training\\image_2\\'
 
 
 

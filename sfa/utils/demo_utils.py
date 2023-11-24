@@ -84,7 +84,7 @@ def parse_demo_configs():
     ####################################################################
     ##############Dataset, Checkpoints, and results dir configs#########
     ####################################################################
-    configs.root_dir = '../'
+    configs.root_dir = 'D:\\Dev\\lidar_object_tracking'
     configs.dataset_dir = os.path.join(configs.root_dir, 'dataset', 'kitti', 'demo')
     configs.calib_path = os.path.join(configs.root_dir, 'dataset', 'kitti', 'demo', 'calib.txt')
     configs.results_dir = os.path.join(configs.root_dir, 'results', configs.saved_fn)

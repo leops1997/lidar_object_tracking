@@ -53,10 +53,6 @@ select_model = 'resnet50'
 # select_model = 'efficientnetb5'
 # select_model = 'mobilenetv2'
 
-
-# Load the 3D model
-bbox3d_model = load_model('/home/luizfpastuch/Dev/lidar_object_tracking/sfa/yolo_resnet/resnet50/resnet50_weights.h5')
-
 bin_size = 6
 input_shape = (224, 224, 3)
 trained_classes = ['Car', 'Cyclist', 'Pedestrian']
@@ -71,8 +67,6 @@ dims_avg = {'Car': np.array([1.52131309, 1.64441358, 3.85728004]),
 'Cyclist': np.array([1.73456498, 0.58174006, 1.77485499]),
 'Tram': np.array([3.56020305,  2.40172589, 18.60659898])}
 # print(dims_avg)
-
-
 
 # Load a 2D model
 bbox2d_model = YOLO('yolov8n-seg.pt')  # load an official model
@@ -176,8 +170,8 @@ def process3D(img, bboxes2d):
         padding = 0  # Set the padding value
         xmin = max(0, bbox_coords[0] - padding)
         ymin = max(0, bbox_coords[1] - padding)
-        xmax = min(frame.shape[1], bbox_coords[2] + padding)
-        ymax = min(frame.shape[0], bbox_coords[3] + padding)
+        xmax = min(img.shape[1], bbox_coords[2] + padding)
+        ymax = min(img.shape[0], bbox_coords[3] + padding)
 
 
         crop = img[int(ymin) : int(ymax), int(xmin) : int(xmax)]
@@ -199,7 +193,7 @@ def process3D(img, bboxes2d):
             dim = DIMS[-1]
 
         bbox_ = [int(xmin), int(ymin), int(xmax), int(ymax)]
-        theta_ray = calc_theta_ray(frame, bbox_, P2)
+        theta_ray = calc_theta_ray(img, bbox_, P2)
         # update with predicted alpha, [-pi, pi]
         alpha = recover_angle(bin_anchor, bin_confidence, bin_size)
         alpha = alpha - theta_ray
@@ -265,7 +259,7 @@ def parse_test_configs():
     ####################################################################
     ##############Dataset, Checkpoints, and results dir configs#########
     ####################################################################
-    configs.root_dir = '../'
+    configs.root_dir = 'D:\\Dev\\lidar_object_tracking'
     configs.dataset_dir = os.path.join(configs.root_dir, 'dataset','kitti')
     configs.results_dir = os.path.join(configs.root_dir, 'results', configs.saved_fn)
     configs.foldername = 'test_results'
@@ -277,10 +271,10 @@ def parse_test_configs():
 if __name__ == '__main__':
     configs = parse_demo_configs()
 
-#    # Try to download the dataset for demonstration
-#    server_url = 'https://s3.eu-central-1.amazonaws.com/avg-kitti/raw_data'
-#    download_url = '{}/{}/{}.zip'.format(server_url, configs.foldername[:-5], configs.foldername)
-#    download_and_unzip(configs.dataset_dir, download_url)
+    # Try to download the dataset for demonstration
+    server_url = 'https://s3.eu-central-1.amazonaws.com/avg-kitti/raw_data'
+    download_url = '{}/{}/{}.zip'.format(server_url, configs.foldername[:-5], configs.foldername)
+    download_and_unzip(configs.dataset_dir, download_url)
 
     model = create_model(configs)
     print('\n\n' + '-*=' * 30 + '\n\n')
@@ -291,6 +285,9 @@ if __name__ == '__main__':
     configs.device = torch.device('cpu' if configs.no_cuda else 'cuda:{}'.format(configs.gpu_idx))
     model = model.to(device=configs.device)
     model.eval()
+
+    # Load the 3D model
+    bbox3d_model = load_model('D:\\Dev\\lidar_object_tracking\\sfa\\yolo_resnet\\resnet50\\resnet50_weights.h5')
 
     # # Load the video
     # video = cv2.VideoCapture('/home/luizfpastuch/Dev/lidar_object_tracking/yolo//assets/2011_10_03_drive_0034_sync_video_trimmed.mp4')
@@ -333,6 +330,11 @@ if __name__ == '__main__':
             img2 = img_rgb.copy()
             img3 = img_rgb.copy() 
 
+            obj_location = []
+            obj_dim = []
+            obj_alpha = []
+            obj_theta = []
+
             ## process 2D and 3D boxes
             img2D, bboxes2d = process2D(img2, track=True)
             if len(bboxes2d) > 0:
@@ -340,6 +342,10 @@ if __name__ == '__main__':
                 if len(bboxes3D) > 0:
                     for bbox_, dim, alpha, theta_ray in bboxes3D:
                         location = plot3d(img3, P2, bbox_, dim, alpha, theta_ray)
+                        obj_location.append(location)
+                        obj_dim.append(dim)
+                        obj_alpha.append(alpha)
+                        obj_theta.append(theta_ray)
                         
             
             # Draw prediction in the image

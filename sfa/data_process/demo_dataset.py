@@ -65,7 +65,7 @@ class Demo_KittiDataset(Dataset):
             'img_path': img_path,
         }
 
-        return metadatas, front_bevmap, img_rgb
+        return front_bevmap, img_rgb, img_path
 
     def load_bevmap_front_vs_back(self, index):
         """Load only image for the testing phase"""
