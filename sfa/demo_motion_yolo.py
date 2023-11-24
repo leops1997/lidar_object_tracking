@@ -27,7 +27,7 @@ from utils.evaluation_utils import draw_predictions, convert_det_to_real_values
 import config.kitti_config as cnf
 from data_process.transformation import lidar_to_camera_box
 from data_process.kitti_data_utils import Calibration
-from utils.demo_utils import parse_demo_configs, do_detect
+from utils.demo_utils import parse_demo_configs, do_detect, download_and_unzip
 from utils.misc import make_folder
 from object_tracker import ObjectTracker
 from easydict import EasyDict as edict
@@ -38,11 +38,8 @@ from ultralytics import YOLO
 from collections import deque
 import tensorflow as tf
 
-sys.path.insert(0, '/home/luizfpastuch/Dev/lidar_object_tracking/yolo_resnet/libs')
-
-from bbox3d_utils import *
-from models.model_utils import create_model
-from train import * 
+from yolo_resnet.libs.bbox3d_utils import *
+from yolo_resnet.yolo_train import *
 
 
 ####### select model  ########
@@ -58,7 +55,8 @@ select_model = 'resnet50'
 
 
 # Load the 3D model
-bbox3d_model = load_model('/home/luizfpastuch/Dev/lidar_object_tracking/yolo_resnet/resnet50/resnet50_weights.h5')
+bbox3d_model = load_model('/home/luizfpastuch/Dev/lidar_object_tracking/sfa/yolo_resnet/resnet50/resnet50_weights.h5')
+
 bin_size = 6
 input_shape = (224, 224, 3)
 trained_classes = ['Car', 'Cyclist', 'Pedestrian']
@@ -278,6 +276,11 @@ def parse_test_configs():
 
 if __name__ == '__main__':
     configs = parse_demo_configs()
+
+#    # Try to download the dataset for demonstration
+#    server_url = 'https://s3.eu-central-1.amazonaws.com/avg-kitti/raw_data'
+#    download_url = '{}/{}/{}.zip'.format(server_url, configs.foldername[:-5], configs.foldername)
+#    download_and_unzip(configs.dataset_dir, download_url)
 
     model = create_model(configs)
     print('\n\n' + '-*=' * 30 + '\n\n')
