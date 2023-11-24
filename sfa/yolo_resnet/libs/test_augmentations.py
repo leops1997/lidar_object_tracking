@@ -16,7 +16,7 @@ from imgaug.augmentables import KeypointsOnImage
 
 import sys
 sys.path.append('../')
-from train import *
+from yolo_train import *
 
 
 # Define the augmentation sequence

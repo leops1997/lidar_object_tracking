@@ -9,7 +9,7 @@ from ultralytics import YOLO
 from collections import deque
 
 from libs.bbox3d_utils import *
-from train import * 
+from yolo_train import * 
 
 
 ####### select model  ########
