@@ -27,6 +27,7 @@ from utils.evaluation_utils import draw_predictions, convert_det_to_real_values
 import config.kitti_config as cnf
 from data_process.transformation import lidar_to_camera_box
 from data_process.kitti_data_utils import Calibration
+from utils.visualization_utils import merge_rgb_to_bev, show_rgb_image_with_boxes
 from utils.demo_utils import parse_demo_configs, do_detect, download_and_unzip
 from utils.misc import make_folder
 from object_tracker import ObjectTracker
@@ -356,12 +357,21 @@ if __name__ == '__main__':
             # Rotate the bev_map
             bev_map = cv2.rotate(bev_map, cv2.ROTATE_180)
 
-            img_bev_h, img_bev_w = bev_map .shape[:2]
-            ratio_bev = configs.output_width / img_bev_w
-            output_bev_h = int(ratio_bev * img_bev_h)
+#            img_bev_h, img_bev_w = bev_map .shape[:2]
+#            ratio_bev = configs.output_width / img_bev_w
+#            output_bev_h = int(ratio_bev * img_bev_h)
+#
+#            out_img = cv2.resize(bev_map , (configs.output_width, output_bev_h))
 
-            out_img = cv2.resize(bev_map , (configs.output_width, output_bev_h))
-            
+            img_bgr = cv2.cvtColor(img2D, cv2.COLOR_RGB2BGR)
+            calib = Calibration(configs.calib_path)
+
+            #if len(kitti_dets) > 0:
+                #kitti_dets[:, 1:] = lidar_to_camera_box(kitti_dets[:, 1:], calib.V2C, calib.R0, calib.P2)
+                #img_bgr = show_rgb_image_with_boxes(img_bgr, kitti_dets, calib)
+
+            out_img = merge_rgb_to_bev(img_bgr, bev_map, output_width=configs.output_width)
+
             if out_cap is None:
                 out_cap_h, out_cap_w = out_img.shape[:2]
                 fourcc = cv2.VideoWriter_fourcc(*'MJPG')
