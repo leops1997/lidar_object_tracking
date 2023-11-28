@@ -31,6 +31,8 @@ from utils.visualization_utils import merge_rgb_to_bev, show_rgb_image_with_boxe
 from utils.demo_utils import parse_demo_configs, do_detect, download_and_unzip
 from utils.misc import make_folder
 from object_tracker import ObjectTracker
+from motion_vectors import MotionVector
+from fusion import Fusion
 from easydict import EasyDict as edict
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # or any {'0', '1', '2'} to control the verbosity
@@ -39,12 +41,12 @@ from ultralytics import YOLO
 from collections import deque
 import tensorflow as tf
 
-from yolo_resnet.libs.bbox3d_utils import *
-from yolo_resnet.yolo_train import *
+from yolo_resnet50.libs.bbox3d_utils import *
+from yolo_resnet50.train import *
 
 
 ####### select model  ########
-# select_model = 'resnet50'
+select_model = 'resnet50'
 # select_model ='resnet101'
 # select_model = 'resnet152'
 # select_model = 'vgg11'
@@ -67,7 +69,6 @@ dims_avg = {'Car': np.array([1.52131309, 1.64441358, 3.85728004]),
 'Person_sitting': np.array([1.28627907, 0.53976744, 0.96906977]),
 'Cyclist': np.array([1.73456498, 0.58174006, 1.77485499]),
 'Tram': np.array([3.56020305,  2.40172589, 18.60659898])}
-# print(dims_avg)
 
 # Load a 2D model
 bbox2d_model = YOLO('yolov8n-seg.pt')  # load an official model
@@ -79,7 +80,7 @@ bbox2d_model.overrides['max_det'] = 1000  # maximum number of detections per ima
 bbox2d_model.overrides['classes'] = 2 ## define classes
 yolo_classes = ['Pedestrian', 'Cyclist', 'Car', 'motorcycle', 'airplane', 'Van', 'train', 'Truck', 'boat']
 
-def process2D(image, track = True, device ='0'):
+def process2D(image, track = True, device ='cpu'):
     bboxes = []
     if track is True:
         results = bbox2d_model.track(image, verbose=False, device=device, persist=True)
@@ -260,7 +261,7 @@ def parse_test_configs():
     ####################################################################
     ##############Dataset, Checkpoints, and results dir configs#########
     ####################################################################
-    configs.root_dir = 'D:\\Dev\\lidar_object_tracking'
+    configs.root_dir = '../'
     configs.dataset_dir = os.path.join(configs.root_dir, 'dataset','kitti')
     configs.results_dir = os.path.join(configs.root_dir, 'results', configs.saved_fn)
     configs.foldername = 'test_results'
@@ -271,11 +272,6 @@ def parse_test_configs():
 
 if __name__ == '__main__':
     configs = parse_demo_configs()
-
-    # Try to download the dataset for demonstration
-    server_url = 'https://s3.eu-central-1.amazonaws.com/avg-kitti/raw_data'
-    download_url = '{}/{}/{}.zip'.format(server_url, configs.foldername[:-5], configs.foldername)
-    download_and_unzip(configs.dataset_dir, download_url)
 
     model = create_model(configs)
     print('\n\n' + '-*=' * 30 + '\n\n')
@@ -288,29 +284,17 @@ if __name__ == '__main__':
     model.eval()
 
     # Load the 3D model
-    bbox3d_model = load_model('D:\\Dev\\lidar_object_tracking\\sfa\\yolo_resnet\\resnet50\\resnet50_weights.h5')
-
-    # # Load the video
-    # video = cv2.VideoCapture('/home/luizfpastuch/Dev/lidar_object_tracking/yolo//assets/2011_10_03_drive_0034_sync_video_trimmed.mp4')
-
-    # ### svae results
-    # # Get video information (frame width, height, frames per second)
-    # frame_width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
-    # frame_height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    # fps = int(video.get(cv2.CAP_PROP_FPS))
-    # # Define the codec and create a VideoWriter object
-    # fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Change the codec if needed (e.g., 'XVID')
-    # out = cv2.VideoWriter(select_model+'_output_video.mp4', fourcc, 15, (frame_width, frame_height))
-
+    bbox3d_model = load_model('/home/leonardo/MASTER_ASI/test_model/lidar_object_tracking/sfa/yolo_resnet50/resnet50/resnet50_weights.h5')
 
     tracking_trajectories = {}
 
     out_cap = None
     selected_dataset = Demo_KittiDataset(configs)
-    camera_det = []
-
+    result = []
+    camera_det =[]
     objects_lidar = ObjectTracker()
     objects_camera = ObjectTracker()
+    objects_fused = Fusion()
     t = 0
     delta_t = 0
     video_time = 10
@@ -318,7 +302,7 @@ if __name__ == '__main__':
         for sample_idx in range(len(selected_dataset)):
             print(sample_idx)
             # bev_map, img_rgb, img_path = selected_dataset.load_bevmap_front(sample_idx)
-            bev_map, img_rgb, img_path = selected_dataset.load_bevmap_front(sample_idx)
+            meta, bev_map, img_rgb = selected_dataset.load_bevmap_front(sample_idx)
             
             detections, bev_map, fps = do_detect(configs, model, bev_map, is_front=True)         
             kitti_dets = convert_det_to_real_values(detections)
@@ -337,6 +321,7 @@ if __name__ == '__main__':
             obj_id=[]
             obj_class =[]
             obj_score=[]
+
 
             ## process 2D and 3D boxes
             img2D, bboxes2d = process2D(img2, track=True)
@@ -378,11 +363,6 @@ if __name__ == '__main__':
             output_bev_h = int(ratio_bev * img_bev_h)
 
             img_bgr = cv2.cvtColor(img2D, cv2.COLOR_RGB2BGR)
-            calib = Calibration(configs.calib_path)
-
-            if len(kitti_dets) > 0:
-                kitti_dets[:, 1:] = lidar_to_camera_box(kitti_dets[:, 1:], calib.V2C, calib.R0, calib.P2)
-                #img_bgr = show_rgb_image_with_boxes(img_bgr, kitti_dets, calib)
 
             out_img = merge_rgb_to_bev(img_bgr, bev_map, output_width=configs.output_width)
 
@@ -395,13 +375,8 @@ if __name__ == '__main__':
 
             out_cap.write(out_img)
 
-            if sample_idx == 43:
-                print('hey')
-
-            df_lidar = pd.DataFrame(objects_lidar.all_detections)
-            df_lidar.to_csv('motion_vectors_lidar.csv', index=False, header=True)
-            df_camera = pd.DataFrame(objects_camera.all_detections)
-            df_camera.to_csv('motion_vectors_camera.csv', index=False, header=True)
+    df = pd.DataFrame(objects_lidar.all_detections)
+    df.to_csv('motion_vectors.csv', index=False, header=False)
 
     if out_cap:
         out_cap.release()
